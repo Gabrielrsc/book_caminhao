@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /* Estilo para o balão */
+        #balao {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid black;
+            padding: 10px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+<figure id="campo_caminhao">
+    <img src="./0031.jpg" alt="Caminhao Mercedes" usemap="#caminhao">
+    <figcaption>Click na área que você quer ver</figcaption>
+</figure>
+<map name="caminhao">
+    <area shape="rect" coords="1031,625,1106,669" href="#" onclick="mostrarBalao(event, 'zoom1.png')" alt="">
+    <area shape="rect" coords="934,723,993,771" href="#" onclick="mostrarBalao(event, 'zoom2.png')" alt="">
+    <area shape="rect" coords="1002,477,1093,531" href="#" onclick="mostrarBalao(event, 'zoom3.png')" alt="">
+</map>
+
+<div id="balao">
+    <img src="zoom1.png" alt="Imagem do balão">
+</div>
+
+<script>
+    function mostrarBalao(event, imagem) {
+        event.preventDefault(); // Impedir a atualização da página
+        const balao = document.getElementById('balao');
+        const imgBalao = balao.querySelector('img');
+        imgBalao.src = imagem;
+        balao.style.display = 'block';
+        balao.style.left = event.pageX + 'px';
+        balao.style.top = event.pageY + 'px';
+
+        console.log('OLAAA')
+
+        // Adicionar um evento de clique ao botão para fechar o balão
+        document.getElementById('campo_caminhao').addEventListener('click', function() {
+            balao.style.display = 'none';
+        });
+
+    }
+
+    function fecharBalaoFora(event) {
+        const balao = document.getElementById('balao');
+        const img = document.querySelector('img[usemap="#caminhao"]');
+        if (event.target !== img && event.target !== balao && !balao.contains(event.target)) {
+            balao.style.display = 'none';
+            document.removeEventListener('click', fecharBalaoFora);
+        }
+    }
+</script>
+
+</body>
+</html>
