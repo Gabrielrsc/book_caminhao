@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Balões com descrição e tabela</title>
+    <style>
+        #container {
+            display: flex;
+            align-items: flex-start;
+        }
+        #imagem {
+            position: relative;
+            margin-right: 20px;
+        }
+        .balao {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-color: 2px solid red;
+            background-color: red;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .descricao {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px;
+            border-radius: 5px;
+            display: none;
+        }
+        .imagem-detalhada {
+            display: none;
+            width: 150px;
+            height: 150px;
+            border: 1px solid black;
+            position: absolute;
+            top: 0;
+            left: 100%;
+            margin-left: 10px;
+            padding: 5px;
+        }
+        table {
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .input-descricao {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="imagem">
+            <img src="../0031.jpg" alt="Imagem" id="imagem-clique">
+            <div class="imagem-detalhada" id="imagem-detalhada"></div>
+        </div>
+        <div>
+            <table id="tabela-baloes">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Descrição</th>
+                        <th>Imagem Detalhada</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <input type="text" id="input-descricao" class="input-descricao" placeholder="Digite a descrição">
+        </div>
+    </div>
+
+    <script>
+        var imagem = document.getElementById('imagem-clique');
+        var imagemDetalhada = document.getElementById('imagem-detalhada');
+        var baloes = [];
+        var tabelaBaloes = document.getElementById('tabela-baloes').getElementsByTagName('tbody')[0];
+        var contador = 1;
+
+        imagem.addEventListener('click', function(evento) {
+            var x = evento.offsetX;
+            var y = evento.offsetY;
+
+            var descricao = prompt('Digite a descrição:');
+            if (descricao === null) {
+                return; // Cancelado
+            }
+
+            var balao = document.createElement('div');
+            balao.className = 'balao';
+            balao.style.left = (evento.pageX - 13) + 'px'; // 13 é metade do tamanho do balão
+            balao.style.top = (evento.pageY - 13) + 'px'; // 13 é metade do tamanho do balão
+            balao.textContent = contador;
+            imagem.parentNode.appendChild(balao);
+
+            var descricaoElemento = document.createElement('div');
+            descricaoElemento.className = 'descricao';
+            descricaoElemento.style.left = (evento.pageX + 10) + 'px'; // 10 é a distância da borda do balão
+            descricaoElemento.style.top = (evento.pageY - 25) + 'px'; // 25 é a altura da descrição
+            descricaoElemento.innerHTML = descricao;
+            imagem.parentNode.appendChild(descricaoElemento);
+
+            var uploadInput = document.createElement('input');
+            uploadInput.type = 'file';
+            uploadInput.accept = 'image/*';
+            uploadInput.onchange = function(event) {
+                var file = event.target.files[0];
+                if (!file) return;
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    balao.style.backgroundImage = `url('${e.target.result}')`;
+                    balao.style.backgroundSize = 'cover';
+                    balao.style.color = 'transparent';
+                };
+                reader.readAsDataURL(file);
+            };
+            var uploadCell = document.createElement('td');
+            uploadCell.appendChild(uploadInput);
+
+            var linha = tabelaBaloes.insertRow();
+            linha.insertCell().textContent = contador;
+            linha.insertCell().textContent = x;
+            linha.insertCell().textContent = y;
+            linha.insertCell().textContent = descricao;
+            linha.appendChild(uploadCell);
+            var acoesCelula = linha.insertCell();
+            var botaoEditar = document.createElement('button');
+            botaoEditar.textContent = 'Editar';
+            botaoEditar.onclick = function() {
+                var novaDescricao = prompt('Editar descrição:', descricao);
+                if (novaDescricao !== null) {
+                    descricaoElemento.innerHTML = novaDescricao;
+                    linha.cells[3].textContent = novaDescricao;
+                }
+            };
+            acoesCelula.appendChild(botaoEditar);
+            var botaoApagar = document.createElement('button');
+            botaoApagar.textContent = 'Apagar';
+            botaoApagar.onclick = function() {
+                balao.remove();
+                descricaoElemento.remove();
+                linha.remove();
+                baloes = baloes.filter(function(b) { return b.id !== contador; });
+            };
+            acoesCelula.appendChild(botaoApagar);
+
+            baloes.push({ id: contador, x: x, y: y, elemento: balao, descricao: descricaoElemento });
+
+            balao.style.display = 'block';
+            descricaoElemento.style.display = 'block';
+
+            contador++;
+        });
+
+        document.addEventListener('click', function(evento) {
+            var balaoClicado = baloes.find(function(balao) {
+                return balao.elemento === evento.target;
+            });
+            if (balaoClicado) {
+                if (imagemDetalhada.style.display === 'block' && balaoClicado.id === imagemDetalhada.dataset.balaoId) {
+                    imagemDetalhada.style.display = 'none';
+                } else {
+                    imagemDetalhada.style.display = 'block';
+                    imagemDetalhada.style.backgroundImage = balaoClicado.elemento.style.backgroundImage;
+                    imagemDetalhada.style.backgroundSize = 'contain';
+                    imagemDetalhada.style.backgroundPosition = 'center';
+                    imagemDetalhada.dataset.balaoId = balaoClicado.id;
+                    imagemDetalhada.style.left = (balaoClicado.elemento.offsetLeft + 30) + 'px'; // 30 é a distância da borda do balão
+                    imagemDetalhada.style.top = (balaoClicado.elemento.offsetTop - 30) + 'px'; // 30 é a altura da imagem detalhada
+                }
+            }
+        });
+    </script>
+</body>
+</html>
